@@ -1,0 +1,105 @@
+<div class="profile-wrapper">
+  <div class="profile-hero glass-panel">
+    <div>
+      <span class="hero-kicker">Vendor Insights</span>
+      <h2 class="title">Profile & Performance </h2>
+      
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="profile-skeleton">
+    <div class="skeleton-card hero-skeleton"></div>
+    <div class="insight-grid">
+      <div class="skeleton-card" *ngFor="let item of [1,2,3]"></div>
+    </div>
+    <div class="skeleton-card details-skeleton"></div>
+  </div>
+
+  <div *ngIf="error && !isLoading" class="profile-error glass-panel">
+    <mat-icon>⚠️</mat-icon>
+    <p>{{ error }}</p>
+  </div>
+
+  <ng-container *ngIf="vendorProfile && !isLoading && !error">
+    <div class="insight-grid">
+      <div class="insight-card glass-panel" *ngFor="let insight of insights">
+       
+        <div>
+          <span class="insight-label">{{ insight.label }}</span>
+          <strong class="insight-value">{{ insight.value }}</strong>
+          <small>{{ insight.helper }}</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-card glass-panel">
+      <div class="header">
+        
+
+        <div class="header-text">
+          <h3>{{ vendorProfile.Name }}</h3>
+          <p>Vendor ID: {{ vendorProfile.VendorID }}</p>
+        </div>
+      </div>
+
+      <div class="summary-grid">
+        <div class="summary-card">
+          <span>Payment Summary</span>
+          <p>{{ paymentSummary }}</p>
+        </div>
+        <div class="summary-card">
+          <span>Performance Summary</span>
+          <p>{{ performanceSummary }}</p>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="grid">
+        <div class="item">
+         
+          <div>
+            <span class="label">Address</span>
+            <span class="value">{{ vendorProfile.Street }}, {{ vendorProfile.City }}</span>
+          </div>
+        </div>
+
+        <div class="item">
+          <div>
+            <span class="label">Country</span>
+            <span class="value">{{ vendorProfile.Country }}</span>
+          </div>
+        </div>
+
+        <div class="item">
+          <div>
+            <span class="label">Email</span>
+            <span class="value">{{ vendorProfile.Email || 'Not Available' }}</span>
+          </div>
+        </div>
+
+        <div class="item">
+          <div>
+            <span class="label">Phone</span>
+            <span class="value">{{ vendorProfile.Phone || 'Not Available' }}</span>
+          </div>
+        </div>
+
+        <div class="item">
+         
+          <div>
+            <span class="label">Postal Code</span>
+            <span class="value">{{ vendorProfile.PostalCode }}</span>
+          </div>
+        </div>
+
+        <div class="item">
+          <div>
+            <span class="label">Region</span>
+            <span class="value">{{ vendorProfile.Region || '-' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

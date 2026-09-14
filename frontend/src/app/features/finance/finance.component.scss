@@ -1,0 +1,415 @@
+:host {
+  --primary-color: #d32f2f;
+  --secondary-color: #f57c00;
+  --surface-color: #ffffff;
+  --surface-muted: rgba(211, 47, 47, 0.05);
+  --text-primary: #1a1a1a;
+  --text-secondary: #666666;
+  --border-color: rgba(211, 47, 47, 0.1);
+}
+
+:host-context(.dark-theme) {
+  --surface-color: #18212f;
+  --surface-muted: rgba(255, 255, 255, 0.04);
+  --text-primary: #f9fafb;
+  --text-secondary: #94a3b8;
+  --border-color: rgba(255, 255, 255, 0.08);
+}
+
+.finance-container {
+  padding: 20px;
+}
+
+.finance-container h2 {
+  color: var(--text-primary);
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 20px;
+}
+
+.tab-content {
+  padding-top: 20px;
+}
+
+.finance-card-panel {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.finance-card-panel mat-card-header {
+  background: linear-gradient(135deg, rgba(211, 47, 47, 0.05), rgba(245, 124, 0, 0.05));
+  border-bottom: 1px solid var(--border-color);
+  padding: 20px;
+}
+
+.finance-card-panel mat-card-title {
+  align-items: center;
+  color: var(--text-primary);
+  display: flex;
+  font-size: 18px;
+  font-weight: 600;
+  gap: 12px;
+}
+
+.finance-card-panel mat-card-subtitle {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.finance-card-panel mat-card-content {
+  padding: 0;
+}
+
+.filters-section {
+  background: linear-gradient(135deg, rgba(211, 47, 47, 0.03), rgba(245, 124, 0, 0.03));
+  border-bottom: 1px solid var(--border-color);
+  padding: 16px 20px;
+}
+
+.filter-row {
+  align-items: end;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.filter-field {
+  width: 100%;
+
+  ::ng-deep .mat-mdc-form-field,
+  ::ng-deep .mdc-text-field {
+    width: 100%;
+  }
+}
+
+.clear-icon {
+  color: #ff5c8a;
+  cursor: pointer;
+        padding: 12px 12px;
+    box-sizing: content-box;
+  font-size: 140px !important;
+  width: 40px !important;
+  height: 140px !important;
+  line-height: 80px !important;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reset-btn {
+  color: var(--primary-color);
+  font-weight: 600;
+  height: 40px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.finance-table {
+  width: 100%;
+}
+
+.finance-table th,
+.finance-table td {
+  color: var(--text-primary);
+  padding: 18px 20px;
+  vertical-align: middle;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.finance-table th {
+  background: linear-gradient(135deg, rgba(211, 47, 47, 0.05), rgba(245, 124, 0, 0.05));
+  border-bottom: 2px solid var(--border-color);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 20px;
+}
+
+.finance-table tr:hover {
+  background: rgba(211, 47, 47, 0.04);
+}
+
+.status-chip {
+  border-radius: 999px;
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+}
+
+.status-paid {
+  background: rgba(76, 175, 80, 0.14);
+  color: #2e7d32;
+}
+
+.status-pending {
+  background: rgba(245, 124, 0, 0.16);
+  color: #ef6c00;
+}
+
+.status-overdue {
+  background: rgba(211, 47, 47, 0.14);
+  color: #c62828;
+}
+
+.action-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.action-btn {
+  color: var(--primary-color);
+  font-weight: 600;
+
+  mat-icon {
+    margin-right: 6px;
+  }
+}
+
+.json-panel {
+  color: var(--text-primary);
+  overflow: auto;
+  padding: 20px;
+}
+
+.json-panel pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.summary-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  padding: 20px;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, var(--surface-muted), rgba(245, 124, 0, 0.08));
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+}
+
+.summary-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.summary-value {
+  color: var(--text-primary);
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.summary-caption {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.chart-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  padding: 20px;
+}
+
+.chart-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-card-header {
+  align-items: baseline;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.chart-card-header h3 {
+  color: var(--text-primary);
+  font-size: 16px;
+  margin: 0;
+}
+
+.chart-card-header span {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.chart-wrapper {
+  height: 100px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  flex: 1;
+}
+
+.chart-wrapper canvas {
+  max-height: 100%;
+  max-width: 100%;
+}
+
+::ng-deep .chart-wrapper canvas {
+  display: block !important;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.status-credit {
+  background: rgba(76, 175, 80, 0.14);
+  color: #2e7d32;
+}
+
+.status-debit {
+  background: rgba(211, 47, 47, 0.14);
+  color: #c62828;
+}
+
+.amount-positive {
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+.amount-negative {
+  color: #c62828;
+  font-weight: 700;
+}
+
+.compact-empty-state {
+  min-height: 220px;
+}
+
+.empty-state,
+.spinner-wrap {
+  align-items: center;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 220px;
+  padding: 24px;
+  text-align: center;
+}
+
+.empty-state mat-icon {
+  font-size: 56px;
+  height: 56px;
+  margin-bottom: 12px;
+  opacity: 0.35;
+  width: 56px;
+      padding: 12px 12px;
+    box-sizing: content-box;
+}
+
+.empty-state p {
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+::ng-deep .mat-mdc-paginator {
+  background: linear-gradient(135deg, rgba(211, 47, 47, 0.03), rgba(245, 124, 0, 0.03));
+  border-top: 1px solid var(--border-color);
+}
+
+::ng-deep .finance-tabs .mdc-tab__text-label,
+::ng-deep .finance-tabs .mat-mdc-tab-header-pagination-chevron,
+::ng-deep .finance-tabs .mat-mdc-paginator,
+::ng-deep .finance-tabs .mat-mdc-paginator .mat-mdc-select-value,
+::ng-deep .finance-tabs .mat-mdc-paginator .mat-mdc-paginator-range-label,
+::ng-deep .finance-tabs .mat-sort-header-content,
+::ng-deep .finance-tabs .mat-mdc-header-cell,
+::ng-deep .finance-tabs .mat-mdc-cell,
+::ng-deep .finance-tabs .mdc-floating-label,
+::ng-deep .finance-tabs .mat-mdc-select-arrow,
+::ng-deep .finance-tabs .mat-mdc-form-field-icon-suffix,
+::ng-deep .finance-tabs .mat-datepicker-toggle-default-icon,
+::ng-deep .finance-tabs input.mat-mdc-input-element,
+::ng-deep .finance-tabs .mdc-text-field__input,
+::ng-deep .finance-tabs .mat-mdc-form-field-error,
+::ng-deep .finance-tabs .mat-mdc-form-field-hint {
+  color: var(--text-primary) !important;
+  transition: color 0.3s ease !important;
+}
+
+::ng-deep .finance-tabs .mdc-tab--active .mdc-tab__text-label,
+::ng-deep .finance-tabs .mat-mdc-form-field-subscript-wrapper,
+::ng-deep .finance-tabs .mat-mdc-paginator .mat-mdc-icon-button {
+  color: var(--text-secondary) !important;
+  transition: color 0.3s ease !important;
+}
+
+::ng-deep .finance-tabs .mat-mdc-option .mdc-list-item__primary-text {
+  color: var(--text-primary) !important;
+  transition: color 0.3s ease !important;
+}
+
+::ng-deep .finance-tabs .mat-mdc-option:hover:not(.mat-mdc-option-disabled) {
+  background: rgba(211, 47, 47, 0.08) !important;
+}
+
+::ng-deep .finance-tabs .mdc-line-ripple::before,
+::ng-deep .finance-tabs .mdc-line-ripple::after,
+::ng-deep .finance-tabs .mdc-notched-outline__leading,
+::ng-deep .finance-tabs .mdc-notched-outline__notch,
+::ng-deep .finance-tabs .mdc-notched-outline__trailing {
+  border-color: var(--border-color) !important;
+}
+
+@media (max-width: 768px) {
+  .finance-container {
+    padding: 12px;
+  }
+
+  .filter-row {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-card-panel mat-card-header,
+  .filters-section {
+    padding: 16px;
+  }
+
+  .chart-grid {
+    padding: 16px;
+  }
+
+  .finance-table th,
+  .finance-table td {
+    font-size: 12px;
+    padding: 12px;
+  }
+}

@@ -1,0 +1,500 @@
+<div class="finance-container">
+  <h2>Finance</h2>
+
+  <mat-tab-group class="finance-tabs" [selectedIndex]="selectedTabIndex" (selectedIndexChange)="onTabChange($event)">
+    <mat-tab label="Invoice details">
+      <div class="tab-content">
+        <mat-card class="finance-card-panel">
+          <mat-card-header>
+            <mat-card-title>
+              
+              Invoice details
+            </mat-card-title>
+            <mat-card-subtitle>Vendor invoice details with PDF access from SAP Adobe Form output</mat-card-subtitle>
+          </mat-card-header>
+
+          <div class="filters-section">
+            <div class="filter-row">
+              <mat-form-field class="filter-field">
+                <mat-label>Search</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="invoiceFilterText"
+                  (ngModelChange)="onInvoiceFilterChange()"
+                  placeholder="Invoice Number, Fiscal Year, PO Number..."
+                >
+                <mat-icon matSuffix *ngIf="invoiceFilterText" (click)="invoiceFilterText=''; onInvoiceFilterChange()" class="clear-icon">x</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field class="filter-field">
+                <mat-label>Status</mat-label>
+                <mat-select [(ngModel)]="invoiceStatusFilter" (selectionChange)="onInvoiceFilterChange()">
+                  <mat-option value="all">All Statuses</mat-option>
+                  <mat-option value="Paid">Paid</mat-option>
+                  <mat-option value="Pending">Pending</mat-option>
+                  <mat-option value="Overdue">Overdue</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field class="filter-field">
+                <mat-label>Start Date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="invoiceStartPicker"
+                  [(ngModel)]="invoiceDateRangeStart"
+                  [max]="invoiceDateRangeEnd"
+                  (dateChange)="onInvoiceStartDateChange()"
+                >
+                <mat-datepicker-toggle matIconSuffix [for]="invoiceStartPicker"></mat-datepicker-toggle>
+                <mat-datepicker #invoiceStartPicker></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field class="filter-field">
+                <mat-label>End Date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="invoiceEndPicker"
+                  [(ngModel)]="invoiceDateRangeEnd"
+                  [min]="invoiceDateRangeStart"
+                  (dateChange)="applyInvoiceFilters()"
+                >
+                <mat-datepicker-toggle matIconSuffix [for]="invoiceEndPicker"></mat-datepicker-toggle>
+                <mat-datepicker #invoiceEndPicker></mat-datepicker>
+              </mat-form-field>
+
+              <button
+                mat-button
+                class="reset-btn"
+                (click)="resetInvoiceFilters()"
+                matTooltip="Reset all invoice filters"
+              >
+                       Reset
+              </button>
+            </div>
+          </div>
+
+          <mat-card-content>
+            <div class="table-container" *ngIf="dataSource.data.length > 0; else emptyInvoiceState">
+              <table mat-table [dataSource]="dataSource" matSort class="finance-table">
+                <ng-container matColumnDef="invoiceNumber">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Invoice Number</th>
+                  <td mat-cell *matCellDef="let invoice">{{ invoice.invoiceNumber }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="fiscalYear">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Fiscal Year</th>
+                  <td mat-cell *matCellDef="let invoice">{{ invoice.fiscalYear }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="poNumber">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>PO Number</th>
+                  <td mat-cell *matCellDef="let invoice">{{ invoice.poNumber }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="invoiceDate">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Invoice Date</th>
+                  <td mat-cell *matCellDef="let invoice">
+                    {{ invoice.invoiceDate ? (invoice.invoiceDate | date:'dd-MM-yyyy') : '-' }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="amount">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
+                  <td mat-cell *matCellDef="let invoice">{{ invoice.amount | number:'1.2-2' }} {{ invoice.currency }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Payment Status</th>
+                  <td mat-cell *matCellDef="let invoice">
+                    <span
+                      class="status-chip"
+                      [ngClass]="{
+                        'status-paid': invoice.status === 'Paid',
+                        'status-pending': invoice.status === 'Pending',
+                        'status-overdue': invoice.status === 'Overdue'
+                      }"
+                    >
+                      {{ invoice.status }}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Actions</th>
+                  <td mat-cell *matCellDef="let invoice">
+                    <div class="action-group">
+                      <button mat-button class="action-btn" (click)="viewPdf(invoice)" matTooltip="Open invoice PDF in a new tab">
+                        <mat-icon>👁</mat-icon>
+                        View PDF
+                      </button>
+                      <button mat-button class="action-btn" (click)="downloadPdf(invoice)" matTooltip="Download invoice PDF">
+                        <mat-icon>💾</mat-icon>
+                        Download PDF
+                      </button>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+
+              <mat-paginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+            </div>
+
+            <ng-template #emptyInvoiceState>
+              <div class="empty-state" *ngIf="!isLoading; else loadingState">
+                
+                <p>No invoices available</p>
+              </div>
+            </ng-template>
+
+            <ng-template #loadingState>
+              <div class="spinner-wrap">
+                <mat-spinner diameter="48"></mat-spinner>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Payments and aging">
+      <div class="tab-content">
+        <mat-card class="finance-card-panel">
+          <mat-card-header>
+            <mat-card-title>
+              
+              Payments and aging
+            </mat-card-title>
+            <mat-card-subtitle>Vendor aging balances grouped by payment interval and clearing status</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="originalAgingRows.length > 0; else emptyAgingState">
+              <div class="summary-grid">
+                <mat-card class="summary-card" *ngFor="let summary of agingSummaryCards">
+                  <span class="summary-label">{{ summary.label }}</span>
+                  <strong class="summary-value">{{ summary.amount | number:'1.2-2' }}</strong>
+                  <span class="summary-caption">{{ summary.count }} invoices</span>
+                </mat-card>
+              </div>
+
+              <div class="filters-section">
+                <div class="filter-row">
+                  <mat-form-field class="filter-field">
+                    <mat-label>Search</mat-label>
+                    <input
+                      matInput
+                      [(ngModel)]="agingFilterText"
+                      (ngModelChange)="onAgingFilterChange()"
+                      placeholder="Document Number, Fiscal Year, Vendor ID..."
+                    >
+                    <mat-icon matSuffix *ngIf="agingFilterText" (click)="agingFilterText=''; onAgingFilterChange()" class="clear-icon">❌</mat-icon>
+                  </mat-form-field>
+
+                  <mat-form-field class="filter-field">
+                    <mat-label>Status</mat-label>
+                    <mat-select [(ngModel)]="agingStatusFilter" (selectionChange)="onAgingFilterChange()">
+                      <mat-option value="all">All Statuses</mat-option>
+                      <mat-option value="Paid">Paid</mat-option>
+                      <mat-option value="Pending">Pending</mat-option>
+                      <mat-option value="Overdue">Overdue</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field class="filter-field">
+                    <mat-label>Aging Bucket</mat-label>
+                    <mat-select [(ngModel)]="agingBucketFilter" (selectionChange)="onAgingFilterChange()">
+                      <mat-option value="all">All Buckets</mat-option>
+                      <mat-option value="0-30 days">0-30 days</mat-option>
+                      <mat-option value="31-60 days">31-60 days</mat-option>
+                      <mat-option value="61-90 days">61-90 days</mat-option>
+                      <mat-option value="90+ days">90+ days</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <button
+                    mat-button
+                    class="reset-btn"
+                    (click)="resetAgingFilters()"
+                    matTooltip="Reset all aging filters"
+                  >
+                   
+                    Reset
+                  </button>
+                </div>
+              </div>
+
+              <div class="table-container" *ngIf="agingDataSource.data.length > 0; else agingNoResultsState">
+                <table mat-table [dataSource]="agingDataSource" matSort #agingSort="matSort" class="finance-table">
+                  <ng-container matColumnDef="documentNumber">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Document Number</th>
+                    <td mat-cell *matCellDef="let row">{{ row.documentNumber }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="fiscalYear">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Fiscal Year</th>
+                    <td mat-cell *matCellDef="let row">{{ row.fiscalYear }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="billingDate">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Billing Date</th>
+                    <td mat-cell *matCellDef="let row">{{ row.billingDate ? (row.billingDate | date:'dd-MM-yyyy') : '-' }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="dueDate">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Due Date</th>
+                    <td mat-cell *matCellDef="let row">{{ row.dueDate ? (row.dueDate | date:'dd-MM-yyyy') : '-' }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="agingDays">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Aging Days</th>
+                    <td mat-cell *matCellDef="let row">{{ row.agingDays }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="amount">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
+                    <td mat-cell *matCellDef="let row">{{ row.amount | number:'1.2-2' }} {{ row.currency }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="paymentStatus">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Payment Status</th>
+                    <td mat-cell *matCellDef="let row">
+                      <span
+                        class="status-chip"
+                        [ngClass]="{
+                          'status-paid': row.paymentStatus === 'Paid',
+                          'status-pending': row.paymentStatus === 'Pending',
+                          'status-overdue': row.paymentStatus === 'Overdue'
+                        }"
+                      >
+                        {{ row.paymentStatus }}
+                      </span>
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="agingDisplayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: agingDisplayedColumns;"></tr>
+                </table>
+
+                <mat-paginator #agingPaginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+              </div>
+            </div>
+            <ng-template #emptyAgingState>
+              <div class="empty-state" *ngIf="!isAgingLoading; else agingLoadingState">
+                <!-- <mat-icon>💲</mat-icon> -->
+                <p>No payments and aging data available</p>
+              </div>
+            </ng-template>
+
+            <ng-template #agingLoadingState>
+              <div class="spinner-wrap">
+                <mat-spinner diameter="48"></mat-spinner>
+              </div>
+            </ng-template>
+
+            <ng-template #agingNoResultsState>
+              <div class="empty-state">
+                <!-- <mat-icon>filter_alt_off</mat-icon> -->
+                <p>No aging records match the selected filters</p>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Credit/Debit memo">
+      <div class="tab-content">
+        <mat-card class="finance-card-panel">
+          <mat-card-header>
+            <mat-card-title>
+              
+              Credit/Debit memo
+            </mat-card-title>
+            <mat-card-subtitle>Vendor memo balances with credit and debit trend visibility</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="originalMemoRows.length > 0; else emptyMemoState">
+              <div class="chart-grid">
+                <mat-card class="chart-card">
+                  <div class="chart-card-header">
+                    <h3>Credit vs Debit Distribution</h3>
+                    <span>Amount split</span>
+                  </div>
+                  <div *ngIf="hasMemoDistributionData(); else noMemoDistributionData" class="chart-wrapper">
+                    <canvas
+                      baseChart
+                      [type]="memoDistributionChartType"
+                      [data]="memoDistributionChartData"
+                      [options]="memoDistributionChartOptions"
+                    ></canvas>
+                  </div>
+                </mat-card>
+
+                <mat-card class="chart-card">
+                  <div class="chart-card-header">
+                    <h3>Memo Trends</h3>
+                    <span>Posting month trend</span>
+                  </div>
+                  <div *ngIf="hasMemoTrendData(); else noMemoTrendData" class="chart-wrapper">
+                    <canvas
+                      baseChart
+                      [type]="memoTrendChartType"
+                      [data]="memoTrendChartData"
+                      [options]="memoTrendChartOptions"
+                    ></canvas>
+                  </div>
+                </mat-card>
+              </div>
+
+              <div class="filters-section">
+                <div class="filter-row">
+                  <mat-form-field class="filter-field">
+                    <mat-label>Search</mat-label>
+                    <input
+                      matInput
+                      [(ngModel)]="memoFilterText"
+                      (ngModelChange)="onMemoFilterChange()"
+                      placeholder="Document Number, Fiscal Year, Description..."
+                    >
+                    <mat-icon matSuffix *ngIf="memoFilterText" (click)="memoFilterText=''; onMemoFilterChange()" class="clear-icon">❌</mat-icon>
+                  </mat-form-field>
+
+                  <mat-form-field class="filter-field">
+                    <mat-label>Memo Type</mat-label>
+                    <mat-select [(ngModel)]="memoTypeFilter" (selectionChange)="onMemoFilterChange()">
+                      <mat-option value="all">All Types</mat-option>
+                      <mat-option value="Credit">Credit</mat-option>
+                      <mat-option value="Debit">Debit</mat-option>
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field class="filter-field">
+                    <mat-label>Start Date</mat-label>
+                    <input
+                      matInput
+                      [matDatepicker]="memoStartPicker"
+                      [(ngModel)]="memoDateRangeStart"
+                      [max]="memoDateRangeEnd"
+                      (dateChange)="onMemoStartDateChange()"
+                    >
+                    <mat-datepicker-toggle matIconSuffix [for]="memoStartPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #memoStartPicker></mat-datepicker>
+                  </mat-form-field>
+
+                  <mat-form-field class="filter-field">
+                    <mat-label>End Date</mat-label>
+                    <input
+                      matInput
+                      [matDatepicker]="memoEndPicker"
+                      [(ngModel)]="memoDateRangeEnd"
+                      [min]="memoDateRangeStart"
+                      (dateChange)="applyMemoFilters()"
+                    >
+                    <mat-datepicker-toggle matIconSuffix [for]="memoEndPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #memoEndPicker></mat-datepicker>
+                  </mat-form-field>
+
+                  <button
+                    mat-button
+                    class="reset-btn"
+                    (click)="resetMemoFilters()"
+                    matTooltip="Reset all memo filters"
+                  > Reset
+                  </button>
+                </div>
+              </div>
+
+              <div class="table-container" *ngIf="memoDataSource.data.length > 0; else noMemoResultsState">
+                <table mat-table [dataSource]="memoDataSource" matSort #memoSort="matSort" class="finance-table">
+                  <ng-container matColumnDef="documentNumber">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Document Number</th>
+                    <td mat-cell *matCellDef="let row">{{ row.documentNumber }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="fiscalYear">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Fiscal Year</th>
+                    <td mat-cell *matCellDef="let row">{{ row.fiscalYear }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="postingDate">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Posting Date</th>
+                    <td mat-cell *matCellDef="let row">{{ row.postingDate ? (row.postingDate | date:'dd-MM-yyyy') : '-' }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="description">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Description</th>
+                    <td mat-cell *matCellDef="let row">{{ row.description }}</td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="amount">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Amount</th>
+                    <td mat-cell *matCellDef="let row">
+                      <span [ngClass]="{ 'amount-positive': row.memoType === 'Credit', 'amount-negative': row.memoType === 'Debit' }">
+                        {{ row.amount | number:'1.2-2' }} {{ row.currency }}
+                      </span>
+                    </td>
+                  </ng-container>
+
+                  <ng-container matColumnDef="memoType">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Memo Type</th>
+                    <td mat-cell *matCellDef="let row">
+                      <span
+                        class="status-chip"
+                        [ngClass]="{
+                          'status-credit': row.memoType === 'Credit',
+                          'status-debit': row.memoType === 'Debit'
+                        }"
+                      >
+                        {{ row.memoType }}
+                      </span>
+                    </td>
+                  </ng-container>
+
+                  <tr mat-header-row *matHeaderRowDef="memoDisplayedColumns"></tr>
+                  <tr mat-row *matRowDef="let row; columns: memoDisplayedColumns;"></tr>
+                </table>
+
+                <mat-paginator #memoPaginator [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
+              </div>
+            </div>
+            <ng-template #emptyMemoState>
+              <div class="empty-state" *ngIf="!isMemoLoading; else memoLoadingState">
+                <!-- <mat-icon>description</mat-icon> -->
+                <p>No credit/debit memo data available</p>
+              </div>
+            </ng-template>
+
+            <ng-template #memoLoadingState>
+              <div class="spinner-wrap">
+                <mat-spinner diameter="48"></mat-spinner>
+              </div>
+            </ng-template>
+
+            <ng-template #noMemoDistributionData>
+              <div class="empty-state compact-empty-state">
+                <!-- <mat-icon>donut_large</mat-icon> -->
+                <p>No distribution data for current filters</p>
+              </div>
+            </ng-template>
+
+            <ng-template #noMemoTrendData>
+              <div class="empty-state compact-empty-state">
+                <!-- <mat-icon>show_chart</mat-icon> -->
+                <p>No trend data for current filters</p>
+              </div>
+            </ng-template>
+
+            <ng-template #noMemoResultsState>
+              <div class="empty-state">
+                <!-- <mat-icon>filter_alt_off</mat-icon> -->
+                <p>No memo records match the selected filters</p>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

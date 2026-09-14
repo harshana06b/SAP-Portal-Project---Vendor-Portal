@@ -1,0 +1,160 @@
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<ng-container *ngIf="showShell; else authOnlyView">
+  <mat-sidenav-container class="layout-container" [class.dark-theme]="isDarkTheme$ | async">
+    <mat-sidenav
+      #sidenav
+      [opened]="isSidenavOpen"
+      mode="side"
+      class="sidenav"
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      <div class="logo" title="KAAR Tech Vendor Portal">
+       
+        <h3>Vendor Portal</h3>
+      </div>
+
+      <mat-nav-list role="list">
+        <h4 class="nav-section" id="main-nav">Main</h4>
+
+        <a
+          mat-list-item
+          routerLink="/dashboard"
+          routerLinkActive="active-link"
+          role="listitem"
+          aria-describedby="main-nav"
+          matTooltip="View your dashboard"
+          [matTooltipPosition]="'right'"
+        >
+          <span>Dashboard</span>
+        </a>
+
+        <a
+          mat-list-item
+          routerLink="/profile"
+          routerLinkActive="active-link"
+          role="listitem"
+          aria-describedby="main-nav"
+          matTooltip="Manage your profile"
+          [matTooltipPosition]="'right'"
+        >
+          
+          <span>Profile</span>
+        </a>
+
+        <h4 class="nav-section" id="financial-nav">Financials</h4>
+
+        <a
+          mat-list-item
+          routerLink="/financials"
+          routerLinkActive="active-link"
+          role="listitem"
+          aria-describedby="financial-nav"
+          matTooltip="View financial information"
+          [matTooltipPosition]="'right'"
+        >
+          <!-- <mat-icon aria-hidden="true">💰</mat-icon> -->
+          <span>Financials</span>
+        </a>
+      </mat-nav-list>
+    </mat-sidenav>
+
+    <mat-sidenav-content class="sidenav-content">
+      <mat-toolbar class="toolbar" role="banner">
+        <button
+          mat-icon-button
+          (click)="toggleSidenav()"
+          matTooltip="Toggle sidebar menu"
+          aria-label="Toggle navigation menu"
+          class="toolbar-button"
+        >
+          <mat-icon aria-hidden="true">⫶☰</mat-icon>
+        </button>
+
+        <div class="toolbar-title-group">
+          <span class="title" role="heading" aria-level="1">Vendor Portal</span>
+          
+        </div>
+
+        <span class="spacer" aria-hidden="true"></span>
+
+         <div class="toolbar-actions">
+        <button
+          mat-button
+          [matMenuTriggerFor]="vendorMenu"
+          matTooltip="Vendor information"
+          aria-label="Vendor menu"
+          class="vendor-trigger"
+          *ngIf="vendorProfile"
+        >
+          <!-- <mat-icon aria-hidden="true">👤</mat-icon> -->
+          <span class="vendor-name">{{ vendorProfile.Name }}</span>
+        </button>
+
+        <mat-menu #vendorMenu="matMenu">
+          <div class="vendor-menu-header">
+            <strong>{{ vendorProfile?.Name }}</strong>
+            <small>Vendor ID: {{ vendorProfile?.VendorID }}</small>
+          </div>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="viewFullProfile()">
+           
+            <span>Full Profile View</span>
+          </button>
+        </mat-menu>
+
+        <button
+          mat-icon-button
+          [matMenuTriggerFor]="notificationMenu"
+          class="toolbar-button notification-button"
+          matTooltip="Notifications"
+          aria-label="Notifications"
+          [matBadge]="notifications.length"
+          [matBadgeHidden]="notifications.length === 0"
+          matBadgeColor="warn"
+        >
+          <mat-icon aria-hidden="true">🔔</mat-icon>
+        </button>
+
+        <mat-menu #notificationMenu="matMenu" class="notification-menu">
+          <div class="notification-menu-header">
+            <strong>Alerts & updates</strong>
+            <small>{{ notifications.length }} active</small>
+          </div>
+          <mat-divider></mat-divider>
+          <button mat-menu-item *ngFor="let item of notifications" (click)="openNotification(item)">
+            <mat-icon [ngClass]="'tone-' + item.tone">📋</mat-icon>
+            <span class="notification-copy">
+              <strong>{{ item.title }}</strong>
+              <small>{{ item.detail }}</small>
+            </span>
+          </button>
+          <div class="notification-empty" *ngIf="notifications.length === 0">
+            No outstanding notifications right now.
+          </div>
+        </mat-menu>
+
+        <button
+          mat-icon-button
+          (click)="logout()"
+          matTooltip="Logout"
+          aria-label="Logout"
+          class="toolbar-button"
+        >
+          <mat-icon aria-hidden="true">➜]</mat-icon>
+        </button>
+        </div>
+      </mat-toolbar>
+
+      <div class="content-shell">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</ng-container>
+
+<ng-template #authOnlyView>
+  <div class="auth-only-view">
+    <router-outlet></router-outlet>
+  </div>
+</ng-template>

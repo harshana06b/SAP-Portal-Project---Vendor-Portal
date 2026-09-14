@@ -1,0 +1,43 @@
+<div class="page">
+  <div class="login-stage">
+    <section class="login-brand">
+      <div class="brand-topline">
+      <h1>KAAR Tech Vendor Portal</h1></div>
+
+      <!-- <div class="brand-metrics">
+        <div class="metric-card">
+          <strong>RFQ to Payment</strong>
+          <span>Connected vendor process timeline</span>
+        </div>
+        <div class="metric-card">
+          <strong>Smart Visibility</strong>
+          <span>Interactive dashboards and drill-downs</span>
+        </div>
+      </div> -->
+    </section>
+
+    <form class="card glass-panel" (ngSubmit)="submit()">
+      <div class="card-head">
+        <div>
+          <span class="eyebrow">Secure Sign In</span>
+          <h2>Welcome back</h2>
+        </div>
+      </div>
+
+      <label for="vendorId">Vendor ID</label>
+      <input id="vendorId" type="text" [(ngModel)]="vendorId" name="vendorId" required />
+
+      <div class="password-field">
+        <label for="password">Password</label>
+        <input id="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" required />
+        <button type="button" class="password-toggle" (click)="togglePasswordVisibility()" [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'">
+          <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </div>
+
+      <button class="login-button" type="submit" [disabled]="loading">{{ loading ? 'Signing in...' : 'Login' }}</button>
+
+      <p class="error" *ngIf="error">{{ error }}</p>
+    </form>
+  </div>
+</div>

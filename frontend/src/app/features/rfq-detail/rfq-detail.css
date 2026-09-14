@@ -1,0 +1,141 @@
+.rfq-detail-container {
+  /* Dynamic Variables */
+  --bg-app: #f1f3f6;
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --brand-red: #e63946;
+  --glass-stroke: rgba(255, 255, 255, 0.6);
+  --card-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+
+  min-height: 90vh; /* Leaving room for toolbar */
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  padding: 20px;
+  background-color: var(--bg-app);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  .rfq-detail-container {
+    --bg-app: #0f172a;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --glass-stroke: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.rfq-card {
+  width: 100%;
+  max-width: 900px; /* Professional width */
+  background: var(--card-bg) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-stroke) !important;
+  border-radius: 30px !important;
+  box-shadow: var(--card-shadow) !important;
+  padding: 40px !important;
+  animation: reveal 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Header Section Alignment */
+.card-header-custom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 40px;
+  border-bottom: 1px solid var(--glass-stroke);
+  padding-bottom: 20px;
+}
+
+.header-title h2 {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.header-title p {
+  color: var(--brand-red);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+/* Table Alignment & Icon Move to Right */
+.rfq-details-table {
+  width: 100%;
+  background: transparent !important;
+}
+
+.rfq-details-table th,
+.rfq-details-table td {
+  text-align: center;
+  padding: 18px 20px;
+}
+
+.rfq-details-table th {
+  padding: 20px;
+  font-weight: 700;
+}
+
+.field-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 18px 20px !important;
+}
+
+.field-label {
+  color: var(--text-muted);
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+}
+
+.value-cell {
+  color: var(--text-main) !important;
+  font-weight: 700 !important;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+  text-align: center;
+  padding: 18px 20px !important;
+}
+
+.icon-right {
+  font-size: 18px;
+  opacity: 0.7;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  margin-left: 10px;
+}
+
+/* Hover effects */
+tr.mat-row:hover .icon-right {
+  transform: translateX(5px) scale(1.2);
+  opacity: 1;
+}
+
+tr.mat-row {
+  height: 65px !important;
+  transition: background 0.3s ease;
+}
+
+tr.mat-row:hover {
+  background: rgba(230, 57, 70, 0.04) !important;
+}
+
+/* --- ANIMATIONS --- */
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}

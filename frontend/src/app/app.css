@@ -1,0 +1,39 @@
+:root {
+  --app-bg: #f5f7fb;
+  --app-surface: #ffffff;
+  --app-text: #1f2937;
+  --app-muted: #6b7280;
+  --app-border: rgba(15, 23, 42, 0.08);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--app-bg);
+  color: var(--app-text);
+  margin: 0;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+body.light-theme {
+  --app-bg: #f5f7fb;
+  --app-surface: #ffffff;
+  --app-text: #1f2937;
+  --app-muted: #6b7280;
+  --app-border: rgba(15, 23, 42, 0.08);
+}
+
+body.dark-theme {
+  --app-bg: #111827;
+  --app-surface: #1f2937;
+  --app-text: #f3f4f6;
+  --app-muted: #9ca3af;
+  --app-border: rgba(255, 255, 255, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}

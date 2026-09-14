@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@angular/cdk": "^21.2.7",
+    "@angular/material": "^21.2.7",
+    "@angular/platform-browser-dynamic": "^21.2.9"
+  }
+}

@@ -1,0 +1,728 @@
+<div class="dashboard-container">
+  <ng-container *ngIf="!isLoading; else dashboardSkeleton">
+  <section class="smart-overview glass-panel">
+    <div class="hero-copy">
+      <span class="hero-kicker">
+       <h1>Overview</h1></span>
+       </div>
+
+    <div class="smart-kpi-grid">
+      <button type="button" class="smart-kpi-card" *ngFor="let kpi of smartKpis" [ngClass]="kpi.accentClass" (click)="openSmartKpiDrill(kpi)">
+        <div class="smart-kpi-header">
+          
+          <span>{{ kpi.label }}</span>
+        </div>
+        <strong>{{ kpi.value }}</strong>
+        <small>{{ kpi.detail }}</small>
+       
+      </button>
+    </div>
+  </section>
+
+  <section class="timeline-panel glass-panel">
+    <div class="panel-title">
+      <h3>Process Timeline</h3>
+      <p>Live flow from Inquiry to Payment</p>
+    </div>
+    <div class="timeline-track">
+      <div class="timeline-stage" *ngFor="let stage of timelineStages; let last = last">
+      
+        <strong>{{ stage.label }}</strong>
+        <span>{{ stage.count }}</span>
+        <small>{{ stage.helper }}</small>
+        <div class="timeline-line" *ngIf="!last"></div>
+      </div>
+    </div>
+  </section>
+
+  <mat-tab-group class="dashboard-tabs" [selectedIndex]="selectedTabIndex" (selectedIndexChange)="onTabChange($event)">
+    <mat-tab label="RFQ">
+      <div class="tab-content">
+        <div class="kpi-cards">
+          <mat-card
+            class="kpi-card"
+            (click)="openKPIDrill('total')"
+            matTooltip="Click to filter by all RFQs"
+            [matTooltipPosition]="'above'"
+          >
+            <mat-card-content>
+              <div class="kpi-header">
+                
+                <span class="kpi-label">Total RFQs</span>
+              </div>
+              <div class="kpi-value">{{ totalRfqs }}</div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card
+            class="kpi-card"
+            (click)="openKPIDrill('open')"
+            matTooltip="Click to filter by open RFQs"
+            [matTooltipPosition]="'above'"
+          >
+            <mat-card-content>
+              <div class="kpi-header">
+                
+                <span class="kpi-label">Open RFQs</span>
+              </div>
+              <div class="kpi-value">{{ openRfqs }}</div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>
+                 RFQ Trends
+            </mat-card-title>
+            <mat-card-subtitle>Filtered RFQs by creation month</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="hasRFQChartData(); else noRfqChartData">
+              <canvas
+                baseChart
+                [data]="rfqChartData"
+                [options]="rfqChartOptions"
+                [type]="rfqChartType"
+                (chartClick)="onRFQChartClick($event)"
+                class="rfq-chart"
+              ></canvas>
+            </div>
+            <ng-template #noRfqChartData>
+              <div class="empty-state">
+               
+                <p>No RFQ chart data available</p>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="table-card" #rfqListTable>
+          <mat-card-header>
+            <div>
+              <mat-card-title>
+                
+                RFQ List
+              </mat-card-title>
+              <mat-card-subtitle *ngIf="rfqMonthDrill">Drilled into {{ rfqMonthDrill }}</mat-card-subtitle>
+            </div>
+            <div class="header-actions">
+              <button mat-stroked-button class="export-btn" (click)="exportRFQExcel()">
+                <!-- <mat-icon>table_view</mat-icon> -->
+                Excel
+              </button>
+              <button mat-stroked-button class="export-btn" (click)="exportRFQPdf()">
+                <!-- <mat-icon>picture_as_pdf</mat-icon> -->
+                PDF
+              </button>
+            </div>
+          </mat-card-header>
+
+          <div class="filters-section">
+            <div class="filter-row">
+              <mat-form-field class="filter-field">
+                <mat-label>Search</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="filterText"
+                  (ngModelChange)="onFilterChange()"
+                  placeholder="RFQ ID, Material..."
+                >
+                <mat-icon matSuffix *ngIf="filterText" (click)="filterText=''; onFilterChange()" class="clear-icon">❌</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field class="filter-field">
+                <mat-label>Status</mat-label>
+                <mat-select [(ngModel)]="statusFilter" (selectionChange)="onFilterChange()">
+                  <mat-option value="all">All Statuses</mat-option>
+                  <mat-option value="Open">Open</mat-option>
+                  <mat-option value="Closed">Closed</mat-option>
+                  <mat-option value="Pending">Pending</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field class="filter-field">
+                <mat-label>Start Date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="startPicker"
+                  [(ngModel)]="dateRangeStart"
+                  [max]="dateRangeEnd"
+                  (dateChange)="onStartDateChange()"
+                >
+                <mat-datepicker-toggle matIconSuffix [for]="startPicker"></mat-datepicker-toggle>
+                <mat-datepicker #startPicker></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field class="filter-field">
+                <mat-label>End Date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="endPicker"
+                  [(ngModel)]="dateRangeEnd"
+                  [min]="dateRangeStart"
+                  (dateChange)="applyFilters()"
+                >
+                <mat-datepicker-toggle matIconSuffix [for]="endPicker"></mat-datepicker-toggle>
+                <mat-datepicker #endPicker></mat-datepicker>
+              </mat-form-field>
+
+              <button
+                mat-button
+                (click)="resetFilters()"
+                matTooltip="Reset all filters"
+                class="reset-btn"
+              >
+               
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <mat-card-content>
+            <div *ngIf="!isEmpty; else emptyState" class="table-wrapper">
+              <table mat-table [dataSource]="dataSource" matSort class="rfq-table">
+                <ng-container matColumnDef="id">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+                  <td mat-cell *matCellDef="let element">{{ element.id }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="material">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Material</th>
+                  <td mat-cell *matCellDef="let element">{{ removeTrailingZeroes(element.material) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="quantity">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Quantity</th>
+                  <td mat-cell *matCellDef="let element">{{ element.quantity }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="rfqDate">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>RFQ Date</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.rfqDate ? (element.rfqDate | date:'dd-MM-yyyy') : '-' }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="deliveryDate">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Delivery Date</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.deliveryDate ? (element.deliveryDate | date:'dd-MM-yyyy') : '-' }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+                  <td mat-cell *matCellDef="let element">
+                    <span
+                      [ngClass]="{
+                        'status-open': element.status === 'Open',
+                        'status-closed': element.status === 'Closed',
+                        'status-pending': element.status === 'Pending'
+                      }"
+                    >
+                      {{ element.status }}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Actions</th>
+                  <td mat-cell *matCellDef="let element">
+                    <button mat-icon-button (click)="navigateToRFQDetails(element.id)" class="view">
+                      View
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              </table>
+
+              <mat-paginator [pageSizeOptions]="[5, 10, 20, 50]" showFirstLastButtons></mat-paginator>
+            </div>
+
+            <ng-template #emptyState>
+              <div class="empty-state">
+                
+                <p>No RFQs available</p>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Purchase Orders">
+      <div class="tab-content">
+        <div class="kpi-cards">
+          <mat-card class="kpi-card" matTooltip="Total Purchase Orders" [matTooltipPosition]="'above'">
+            <mat-card-content>
+              <div class="kpi-header">
+               
+                <span class="kpi-label">Total POs</span>
+              </div>
+              <div class="kpi-value">{{ totalPOs }}</div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>
+            
+              Material vs PO Analysis
+            </mat-card-title>
+            <mat-card-subtitle>Grouped by material, updated by the current PO filters</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="hasPOChartData(); else noPOChartData" class="chart-wrapper">
+              <canvas
+                baseChart
+                [type]="poChartType"
+                [data]="poMaterialChartData"
+                [options]="poChartOptions"
+                (chartClick)="onPOChartClick($event)"
+                class="po-chart"
+              ></canvas>
+            </div>
+            <ng-template #noPOChartData>
+              <div class="empty-state">
+               
+                <p>No chart data available</p>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="table-card">
+          <mat-card-header>
+            <mat-card-title>
+              
+              Materials &amp; Purchase Orders
+            </mat-card-title>
+            <div class="header-actions">
+              <button mat-stroked-button class="export-btn" (click)="exportPOExcel()">
+                <!-- <mat-icon>table_view</mat-icon> -->
+                Excel
+              </button>
+              <button mat-stroked-button class="export-btn" (click)="exportPOPdf()">
+                <!-- <mat-icon>picture_as_pdf</mat-icon> -->
+                PDF
+              </button>
+            </div>
+          </mat-card-header>
+
+          <div class="filters-section">
+            <div class="filter-row">
+              <mat-form-field class="filter-field">
+                <mat-label>Search</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="poFilterText"
+                  (ngModelChange)="onPOFilterChange()"
+                  placeholder="Material, Description, PO Number..."
+                >
+                <mat-icon matSuffix *ngIf="poFilterText" (click)="poFilterText=''; onPOFilterChange()" class="clear-icon">❌</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field class="filter-field">
+                <mat-label>Start Date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="poStartPicker"
+                  [(ngModel)]="poDateRangeStart"
+                  [max]="poDateRangeEnd"
+                  (dateChange)="onPOStartDateChange()"
+                >
+                <mat-datepicker-toggle matIconSuffix [for]="poStartPicker"></mat-datepicker-toggle>
+                <mat-datepicker #poStartPicker></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field class="filter-field">
+                <mat-label>End Date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="poEndPicker"
+                  [(ngModel)]="poDateRangeEnd"
+                  [min]="poDateRangeStart"
+                  (dateChange)="applyPOFilters()"
+                >
+                <mat-datepicker-toggle matIconSuffix [for]="poEndPicker"></mat-datepicker-toggle>
+                <mat-datepicker #poEndPicker></mat-datepicker>
+              </mat-form-field>
+
+              <button
+                mat-button
+                (click)="resetPOFilters()"
+                matTooltip="Reset all filters"
+                class="reset-btn"
+              >Reset
+              </button>
+            </div>
+          </div>
+
+          <mat-card-content>
+            <div *ngIf="pOMaterialDataSource.data.length > 0; else emptyPOState" class="table-wrapper">
+              <table mat-table [dataSource]="pOMaterialDataSource" matSort #poMaterialSort="matSort" multiTemplateDataRows class="po-material-table">
+                <ng-container matColumnDef="material">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    
+                    Material
+                  </th>
+                  <td mat-cell *matCellDef="let element">
+                    <button type="button" class="material-link" (click)="openPODialog(element)">
+                      {{ removeTrailingZeroes(element.material) }}
+                    </button>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="description">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Description</th>
+                  <td mat-cell *matCellDef="let element">{{ element.description }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="poCount">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>PO Count</th>
+                  <td mat-cell *matCellDef="let element">
+                    <span class="po-count-badge">{{ element.poCount }}</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalQuantity">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Total Qty</th>
+                  <td mat-cell *matCellDef="let element">{{ element.totalQuantity | number:'1.0-2' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalPrice">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Total Price</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.totalPrice | number:'1.0-2' }} {{ element.currency }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Actions</th>
+                  <td mat-cell *matCellDef="let element">
+                    <button
+                      mat-button
+                      class="action-btn"
+                      (click)="openPODialog(element)"
+                      matTooltip="View all related purchase orders">
+                      View PO
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedPOMaterialColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedPOMaterialColumns;" class="po-material-row"></tr>
+              </table>
+            </div>
+
+            <ng-template #emptyPOState>
+              <div class="empty-state">
+                <!-- <mat-icon>inbox</mat-icon> -->
+                <p>No Purchase Orders available</p>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Goods Receipts">
+      <div class="tab-content">
+        <div class="kpi-cards">
+          <mat-card class="kpi-card" matTooltip="Total Goods Receipt documents with movement type 101" [matTooltipPosition]="'above'">
+            <mat-card-content>
+              <div class="kpi-header">
+                <!-- <mat-icon class="kpi-icon">inventory_2</mat-icon> -->
+                <span class="kpi-label">Total GR Docs</span>
+              </div>
+              <div class="kpi-value">{{ totalGRs }}</div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <mat-card class="chart-card">
+          <mat-card-header>
+            <mat-card-title>
+              <!-- <mat-icon class="chart-icon">stacked_bar_chart</mat-icon> -->
+              Goods Receipt by Material
+            </mat-card-title>
+            <mat-card-subtitle>Movement type 101 receipts grouped by material</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div *ngIf="hasGRChartData(); else noGRChartData" class="chart-wrapper">
+              <canvas
+                baseChart
+                [type]="poChartType"
+                [data]="grMaterialChartData"
+                [options]="grChartOptions"
+                (chartClick)="onGRChartClick($event)"
+                class="po-chart"
+              ></canvas>
+            </div>
+            <ng-template #noGRChartData>
+              <div class="empty-state">
+                <!-- <mat-icon>bar_chart</mat-icon> -->
+                <p>No Goods Receipt chart data available</p>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="table-card">
+          <mat-card-header>
+            <mat-card-title>
+             
+              Materials &amp; Goods Receipts
+            </mat-card-title>
+            <div class="header-actions">
+              <button mat-stroked-button class="export-btn" (click)="exportGRExcel()">
+                <!-- <mat-icon>table_view</mat-icon> -->
+                Excel
+              </button>
+              <button mat-stroked-button class="export-btn" (click)="exportGRPdf()">
+                <!-- <mat-icon>picture_as_pdf</mat-icon> -->
+                PDF
+              </button>
+            </div>
+          </mat-card-header>
+
+          <div class="filters-section">
+            <div class="filter-row">
+              <mat-form-field class="filter-field">
+                <mat-label>Search</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="grFilterText"
+                  (ngModelChange)="onGRFilterChange()"
+                  placeholder="Material, Material Doc, PO Number..."
+                >
+                <mat-icon matSuffix *ngIf="grFilterText" (click)="grFilterText=''; onGRFilterChange()" class="clear-icon">❌</mat-icon>
+              </mat-form-field>
+
+              <mat-form-field class="filter-field">
+                <mat-label>Start Date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="grStartPicker"
+                  [(ngModel)]="grDateRangeStart"
+                  [max]="grDateRangeEnd"
+                  (dateChange)="onGRStartDateChange()"
+                >
+                <mat-datepicker-toggle matIconSuffix [for]="grStartPicker"></mat-datepicker-toggle>
+                <mat-datepicker #grStartPicker></mat-datepicker>
+              </mat-form-field>
+
+              <mat-form-field class="filter-field">
+                <mat-label>End Date</mat-label>
+                <input
+                  matInput
+                  [matDatepicker]="grEndPicker"
+                  [(ngModel)]="grDateRangeEnd"
+                  [min]="grDateRangeStart"
+                  (dateChange)="applyGRFilters()"
+                >
+                <mat-datepicker-toggle matIconSuffix [for]="grEndPicker"></mat-datepicker-toggle>
+                <mat-datepicker #grEndPicker></mat-datepicker>
+              </mat-form-field>
+
+              <button
+                mat-button
+                (click)="resetGRFilters()"
+                matTooltip="Reset all filters"
+                class="reset-btn"
+              >
+                <!-- <mat-icon>restart_alt</mat-icon> -->
+                Reset
+              </button>
+            </div>
+          </div>
+
+          <mat-card-content>
+            <div *ngIf="gRMaterialDataSource.data.length > 0; else emptyGRState" class="table-wrapper">
+              <table mat-table [dataSource]="gRMaterialDataSource" matSort #grMaterialSort="matSort" class="po-material-table">
+                <ng-container matColumnDef="material">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>
+                    <!-- <mat-icon class="column-icon">category</mat-icon> -->
+                    Material
+                  </th>
+                  <td mat-cell *matCellDef="let element">
+                    <button type="button" class="material-link" (click)="openGRDialog(element)">
+                      <!-- <mat-icon>visibility</mat-icon> -->
+                      {{ removeTrailingZeroes(element.material) }}
+                    </button>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="grCount">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>GR Count</th>
+                  <td mat-cell *matCellDef="let element">
+                    <span class="po-count-badge gr-count-badge">{{ element.grCount }}</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="totalReceivedQuantity">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Total Received Qty</th>
+                  <td mat-cell *matCellDef="let element">{{ element.totalReceivedQuantity | number:'1.0-2' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="latestPostingDate">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Latest Posting Date</th>
+                  <td mat-cell *matCellDef="let element">
+                    {{ element.latestPostingDate ? (element.latestPostingDate | date:'dd-MM-yyyy') : '-' }}
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="actions">
+                  <th mat-header-cell *matHeaderCellDef>Actions</th>
+                  <td mat-cell *matCellDef="let element">
+                    <button
+                      mat-button
+                      class="action-btn"
+                      (click)="openGRDialog(element)"
+                      matTooltip="View all related goods receipts"
+                    >
+                      <!-- <mat-icon>visibility</mat-icon> -->
+                      View GR
+                    </button>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedGRMaterialColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedGRMaterialColumns;" class="po-material-row"></tr>
+              </table>
+            </div>
+
+            <ng-template #emptyGRState>
+              <div class="empty-state">
+                <!-- <mat-icon>inventory</mat-icon> -->
+                <p>No Goods Receipts available</p>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="GR Status">
+      <div class="tab-content">
+        <div class="kpi-cards">
+          <mat-card class="kpi-card" matTooltip="Material-wise PO vs GR comparison" [matTooltipPosition]="'above'">
+            <mat-card-content>
+              <div class="kpi-header">
+                <!-- <mat-icon class="kpi-icon">rule</mat-icon> -->
+                <span class="kpi-label">Materials Compared</span>
+              </div>
+              <div class="kpi-value">{{ gRStatusDataSource.data.length }}</div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <mat-card class="table-card">
+          <mat-card-header>
+            <mat-card-title>
+              <!-- <mat-icon class="table-icon">fact_check</mat-icon> -->
+              Goods Receipt vs Purchase Order
+            </mat-card-title>
+            <div class="header-actions">
+              <button mat-stroked-button class="export-btn" (click)="exportGRStatusExcel()">
+                <!-- <mat-icon>table_view</mat-icon> -->
+                Excel
+              </button>
+              <button mat-stroked-button class="export-btn" (click)="exportGRStatusPdf()">
+                <!-- <mat-icon>picture_as_pdf</mat-icon> -->
+                PDF
+              </button>
+            </div>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div *ngIf="gRStatusDataSource.data.length > 0; else emptyGRStatusState" class="table-wrapper">
+              <table mat-table [dataSource]="gRStatusDataSource" matSort #grStatusSort="matSort" class="po-material-table">
+                <ng-container matColumnDef="material">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Material</th>
+                  <td mat-cell *matCellDef="let element">{{ removeTrailingZeroes(element.material) }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="orderedQuantity">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Ordered Quantity</th>
+                  <td mat-cell *matCellDef="let element">{{ element.orderedQuantity | number:'1.0-2' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="receivedQuantity">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Received Quantity</th>
+                  <td mat-cell *matCellDef="let element">{{ element.receivedQuantity | number:'1.0-2' }}</td>
+                </ng-container>
+
+                <ng-container matColumnDef="progress">
+                  <th mat-header-cell *matHeaderCellDef>Progress</th>
+                  <td mat-cell *matCellDef="let element">
+                    <div class="progress-cell">
+                      <mat-progress-bar mode="determinate" [value]="getReceiptProgress(element)"></mat-progress-bar>
+                      <span>{{ getReceiptProgress(element) }}%</span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+                  <td mat-cell *matCellDef="let element">
+                    <span
+                      class="status-chip"
+                      [ngClass]="{
+                        'status-completed': element.status === 'Completed',
+                        'status-partial': element.status === 'Partial',
+                        'status-pending-gr': element.status === 'Pending'
+                      }"
+                    >
+                      {{ element.status }}
+                    </span>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedGRStatusColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedGRStatusColumns;" class="po-material-row"></tr>
+              </table>
+            </div>
+
+            <ng-template #emptyGRStatusState>
+              <div class="empty-state">
+                <!-- <mat-icon>fact_check</mat-icon> -->
+                <p>No GR status data available</p>
+              </div>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+  </mat-tab-group>
+  </ng-container>
+
+  <ng-template #dashboardSkeleton>
+    <div class="tab-content">
+      <section class="smart-overview glass-panel skeleton-shell">
+        <div class="skeleton-line hero-line"></div>
+        <div class="skeleton-line hero-line short"></div>
+        <div class="smart-kpi-grid">
+          <div class="skeleton-card" *ngFor="let item of [1,2,3,4]"></div>
+        </div>
+      </section>
+      <section class="timeline-panel glass-panel skeleton-shell">
+        <div class="skeleton-line timeline-line-skeleton"></div>
+        <div class="timeline-skeleton-grid">
+          <div class="skeleton-card stage-skeleton" *ngFor="let item of [1,2,3,4,5]"></div>
+        </div>
+      </section>
+      <section class="glass-panel skeleton-shell">
+        <div class="skeleton-line header-line"></div>
+        <div class="skeleton-table-grid">
+          <div class="skeleton-line" *ngFor="let item of [1,2,3,4,5,6]"></div>
+        </div>
+      </section>
+    </div>
+  </ng-template>
+</div>
